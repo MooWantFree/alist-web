@@ -1,4 +1,10 @@
 import {
+  Button,
+  Input,
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuTrigger,
   Table,
   TableCaption,
   Tbody,
@@ -11,6 +17,7 @@ import {
 import { PageResp } from "~/types"
 import { handleResp, r } from "~/utils"
 import { createEffect, createSignal } from "solid-js"
+import { FaSolidAngleDown } from "solid-icons/fa"
 
 interface CounterResp {
   id: number
@@ -25,13 +32,13 @@ const Counter = () => {
   const [counters, setCounters] = createSignal<CounterResp[]>([])
   const [reverse, setReverse] = createSignal(false)
   const [sortKey, setSortKey] = createSignal("time")
-  let current_page = 1
-  let page_size = 1111
+  const [currentPage, setCurrentPage] = createSignal(1)
+  const [pageSize, setPageSize] = createSignal(10)
 
   const getCounters = async () => {
     const resp: PageResp<CounterResp> = await r.post("/admin/counter/get", {
-      current_page: current_page,
-      page_size: page_size,
+      current_page: currentPage(),
+      page_size: pageSize(),
       sort_key: sortKey(),
       reverse: reverse(),
     })
@@ -51,64 +58,93 @@ const Counter = () => {
     }
   }
 
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage)
+  }
+
+  const handlePageSizeChange = (pageSize: number) => {
+    setPageSize(pageSize)
+    setCurrentPage(1)
+  }
+
   return (
-    <Table highlightOnHover dense>
-      <TableCaption>DownloadCounter</TableCaption>
-      <Thead>
-        <Tr>
-          <Th
-            onClick={() => handleHeaderClick("id")}
-            style={{ cursor: "pointer" }}
-          >
-            id
-          </Th>
-          <Th
-            onClick={() => handleHeaderClick("file_name")}
-            style={{ cursor: "pointer" }}
-          >
-            file_name
-          </Th>
-          <Th
-            onClick={() => handleHeaderClick("file_path")}
-            style={{ cursor: "pointer" }}
-          >
-            file_path
-          </Th>
-          <Th
-            onClick={() => handleHeaderClick("time")}
-            style={{ cursor: "pointer" }}
-          >
-            time
-          </Th>
-          <Th
-            onClick={() => handleHeaderClick("ip_address")}
-            style={{ cursor: "pointer" }}
-          >
-            ip_address
-          </Th>
-          <Th
-            onClick={() => handleHeaderClick("status_code")}
-            style={{ cursor: "pointer" }}
-          >
-            status_code
-          </Th>
-        </Tr>
-      </Thead>
-      <Tbody>
-        {counters().map((drive) => (
+    <>
+      <Table highlightOnHover dense>
+        <TableCaption>DownloadCounter</TableCaption>
+        <Thead>
           <Tr>
-            {Object.values(drive).map((value, index) => (
-              <Td>{value}</Td>
+            {[
+              "id",
+              "file_name",
+              "file_path",
+              "time",
+              "ip_address",
+              "status_code",
+            ].map((key) => (
+              <Th
+                onClick={() => handleHeaderClick(key)}
+                style={{ cursor: "pointer" }}
+              >
+                {key}
+              </Th>
             ))}
           </Tr>
-        ))}
-      </Tbody>
-      <Tfoot>
-        <Tr>
-          <Td colSpan={6}>Total Entries: {counters().length}</Td>
-        </Tr>
-      </Tfoot>
-    </Table>
+        </Thead>
+        <Tbody>
+          {counters().map((drive) => (
+            <Tr>
+              {Object.values(drive).map((value, index) => (
+                <Td>{value}</Td>
+              ))}
+            </Tr>
+          ))}
+        </Tbody>
+        <Tfoot>
+          <Tr>
+            <Td colSpan={6}>Total Entries: {counters().length}</Td>
+          </Tr>
+        </Tfoot>
+      </Table>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: "1rem",
+        }}
+      >
+        <Menu>
+          <MenuTrigger
+            as={Button}
+            variant="subtle"
+            colorScheme="neutral"
+            rightIcon={<FaSolidAngleDown />}
+          >
+            {pageSize().toString()}/每页
+          </MenuTrigger>
+          <MenuContent>
+            <MenuItem onSelect={() => handlePageSizeChange(10)}>10</MenuItem>
+            <MenuItem onSelect={() => handlePageSizeChange(20)}>20</MenuItem>
+            <MenuItem onSelect={() => handlePageSizeChange(50)}>50</MenuItem>
+            <MenuItem onSelect={() => handlePageSizeChange(100)}>100</MenuItem>
+          </MenuContent>
+        </Menu>
+        <Button
+          onClick={() => handlePageChange(currentPage() - 1)}
+          disabled={currentPage() === 1}
+        >
+          Previous
+        </Button>
+        <Input
+          htmlSize={4}
+          width="auto"
+          placeholder={currentPage().toString()}
+        ></Input>
+        <Button onClick={() => handlePageChange(currentPage() + 1)}>
+          Next
+        </Button>
+      </div>
+    </>
   )
 }
 
