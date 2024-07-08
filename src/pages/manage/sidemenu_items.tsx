@@ -12,6 +12,7 @@ import {
   BsCloudUploadFill,
   BsSearch,
   BsBucket,
+  BsCardList,
 } from "solid-icons/bs"
 import { FiLogIn } from "solid-icons/fi"
 import { SiMetabase } from "solid-icons/si"
@@ -158,6 +159,13 @@ export const side_menu_items: SideMenuItem[] = [
     to: "/@manage/backup-restore",
     icon: FaSolidDatabase,
     component: lazy(() => import("./backup-restore")),
+  },
+  {
+    title: "manage.sidemenu.counter",
+    icon: BsCardList,
+    to: "/@manage/count",
+    role: UserRole.GUEST,
+    component: lazy(() => import("~/pages/manage/counter/Counter")),
   },
   {
     title: "manage.sidemenu.about",
