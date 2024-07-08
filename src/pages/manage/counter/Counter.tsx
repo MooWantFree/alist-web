@@ -1,4 +1,13 @@
-import { Td, Text, Tr, Table } from "@hope-ui/solid"
+import {
+  Table,
+  TableCaption,
+  Tbody,
+  Td,
+  Tfoot,
+  Th,
+  Thead,
+  Tr,
+} from "@hope-ui/solid"
 import { PageResp } from "~/types"
 import { handleResp, r } from "~/utils"
 import { createEffect, createSignal, For } from "solid-js"
@@ -12,54 +21,56 @@ interface CounterResp {
   status_code: number // 状态码
 }
 
-type TableData = {
-  id: number
-  fileName: string
-  filePath: string
-  time: number
-  ip_address: number
-  status_code: number
-}
-
-type TableComponentProps = {
-  caption: string
-  data: TableData[]
-}
 const Counter = () => {
-  const [drivers, setDrivers] = createSignal<CounterResp[]>()
-
-  const getDrivers = async () => {
+  const [counters, setCounters] = createSignal<CounterResp[]>([])
+  let current_page = 1
+  let page_size = 1111
+  let time = "time"
+  let reverse = false
+  const getCounters = async () => {
     const resp: PageResp<CounterResp> = await r.post("/admin/counter/get", {
-      current_page: 1,
-      page_size: 1111,
-      sort_key: "time",
-      reverse: false,
+      current_page: current_page,
+      page_size: page_size,
+      sort_key: time,
+      reverse: reverse,
     })
-    handleResp(resp, (data) => setDrivers(data.content))
+    handleResp(resp, (data) => setCounters(data.content))
   }
 
-  // 使用 createEffect 来确保在组件挂载时请求数据
   createEffect(() => {
-    getDrivers()
+    getCounters()
   })
 
   return (
-    <>
-      <Table highlightOnHover dense>
-        <For each={drivers()}>
+    <Table highlightOnHover dense>
+      <TableCaption>DownloadCounter</TableCaption>
+      <Thead>
+        <Tr>
+          <Th>id</Th>
+          <Th>file_name</Th>
+          <Th>file_path</Th>
+          <Th>time</Th>
+          <Th>ip_address</Th>
+          <Th>status_code</Th>
+        </Tr>
+      </Thead>
+      <Tbody>
+        <For each={counters()}>
           {(drive) => (
             <Tr>
-              <Td>{drive.file_name}</Td>
-              <Td>{drive.file_path}</Td>
-              <Td>{drive.time}</Td>
-              <Td>{drive.ip_address}</Td>
-              <Td>{drive.status_code}</Td>
+              {Object.values(drive).map((value, index) => (
+                <Td>{value}</Td>
+              ))}
             </Tr>
           )}
         </For>
-      </Table>
-      {/*<Text>{JSON.stringify(drivers())}</Text>*/}
-    </>
+      </Tbody>
+      <Tfoot>
+        <Tr>
+          <Td colSpan={6}>Total Entries: {counters().length}</Td>
+        </Tr>
+      </Tfoot>
+    </Table>
   )
 }
 
