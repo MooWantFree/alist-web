@@ -20,7 +20,7 @@ import { handleResp, r } from "~/utils"
 import { createEffect, createSignal } from "solid-js"
 import { FaSolidAngleDown } from "solid-icons/fa"
 import "./counter.css"
-import { ChevronSort, ChevronSortDown, ChevronSortUp } from "./icons"
+import { SvgChevronSort, SvgChevronSortDown, SvgChevronSortUp } from "./icons"
 
 interface CounterResp {
   id: number
@@ -63,7 +63,7 @@ const Counter = () => {
 
   createEffect(() => {
     getCounters()
-  }, [])
+  })
 
   const handleHeaderClick = (key: string) => {
     if (sortKey() === key) {
@@ -86,31 +86,33 @@ const Counter = () => {
   return (
     <>
       <Table highlightOnHover dense striped="odd">
-        <TableCaption>DownloadCounter</TableCaption>
         <Thead>
           <Tr>
-            {[
-              "id",
-              "file_name",
-              "file_path",
-              "time",
-              "ip_address",
-              "status_code",
-            ].map((key) => (
-              <Th
-                onClick={() => handleHeaderClick(key)}
-                style={{ cursor: "pointer" }}
-              >
-                {key}
-                {sortKey() === key
-                  ? reverse()
-                    ? ChevronSortUp
-                    : ChevronSortDown
-                  : ChevronSort}
-              </Th>
-            ))}
+            {["id", "file_name", "file_path", "time", "ip_address"].map(
+              (key) => (
+                <Th
+                  onClick={() => handleHeaderClick(key)}
+                  class="fixed-width"
+                  style={{ cursor: "pointer" }}
+                >
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    {key}
+                    {sortKey() === key ? (
+                      reverse() ? (
+                        <SvgChevronSortUp />
+                      ) : (
+                        <SvgChevronSortDown />
+                      )
+                    ) : (
+                      <SvgChevronSort />
+                    )}
+                  </div>
+                </Th>
+              ),
+            )}
           </Tr>
         </Thead>
+
         <Tbody>
           {loading() ? (
             <Tr>
@@ -119,10 +121,12 @@ const Counter = () => {
               </Td>
             </Tr>
           ) : (
-            counters().map((drive) => (
+            counters().map((counter) => (
               <Tr>
-                {Object.values(drive).map((value, index) => (
-                  <Td>{value}</Td>
+                {Object.values(counter).map((value, index) => (
+                  <Td class="fixed-width" title={value.toString()}>
+                    {value}
+                  </Td>
                 ))}
               </Tr>
             ))
@@ -152,6 +156,12 @@ const Counter = () => {
           </MenuContent>
         </Menu>
         <Button
+          onClick={() => handlePageChange(1)}
+          disabled={currentPage() === 1 || loading()}
+        >
+          首页
+        </Button>
+        <Button
           onClick={() => handlePageChange(currentPage() - 1)}
           disabled={currentPage() === 1 || loading()}
         >
@@ -168,6 +178,12 @@ const Counter = () => {
           disabled={currentPage() === maxPage() || loading()}
         >
           Next
+        </Button>
+        <Button
+          onClick={() => handlePageChange(maxPage())}
+          disabled={currentPage() === maxPage() || loading()}
+        >
+          末页
         </Button>
       </div>
     </>

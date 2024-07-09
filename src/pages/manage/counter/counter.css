@@ -7,3 +7,10 @@
   margin-top: 1rem;
   width: 100%;
 }
+
+.fixed-width {
+  max-width: 150px; /* 你可以根据需要调整这个宽度 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* 使溢出文本显示省略号 */
+}
