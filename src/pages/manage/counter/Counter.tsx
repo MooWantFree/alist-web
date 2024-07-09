@@ -13,6 +13,7 @@ import {
   Th,
   Thead,
   Tr,
+  Spinner,
 } from "@hope-ui/solid"
 import { PageResp } from "~/types"
 import { handleResp, r } from "~/utils"
@@ -37,8 +38,10 @@ const Counter = () => {
   const [currentPage, setCurrentPage] = createSignal(1)
   const [pageSize, setPageSize] = createSignal(10)
   const [maxPage, setMaxPage] = createSignal(1)
+  const [loading, setLoading] = createSignal(false)
 
   const getCounters = async () => {
+    setLoading(true)
     const resp: PageResp<CounterResp> = await r.post("/admin/counter/get", {
       current_page: currentPage(),
       page_size: pageSize(),
@@ -55,11 +58,12 @@ const Counter = () => {
       setMaxPage(resp.data.total)
       setCounters(result)
     })
+    setLoading(false)
   }
 
   createEffect(() => {
     getCounters()
-  })
+  }, [])
 
   const handleHeaderClick = (key: string) => {
     if (sortKey() === key) {
@@ -98,18 +102,31 @@ const Counter = () => {
                 style={{ cursor: "pointer" }}
               >
                 {key}
+                {sortKey() === key
+                  ? reverse()
+                    ? ChevronSortUp
+                    : ChevronSortDown
+                  : ChevronSort}
               </Th>
             ))}
           </Tr>
         </Thead>
         <Tbody>
-          {counters().map((drive) => (
+          {loading() ? (
             <Tr>
-              {Object.values(drive).map((value, index) => (
-                <Td>{value}</Td>
-              ))}
+              <Td colSpan={6} style={{ textAlign: "center" }}>
+                <Spinner />
+              </Td>
             </Tr>
-          ))}
+          ) : (
+            counters().map((drive) => (
+              <Tr>
+                {Object.values(drive).map((value, index) => (
+                  <Td>{value}</Td>
+                ))}
+              </Tr>
+            ))
+          )}
         </Tbody>
         <Tfoot>
           <Tr>
@@ -136,7 +153,7 @@ const Counter = () => {
         </Menu>
         <Button
           onClick={() => handlePageChange(currentPage() - 1)}
-          disabled={currentPage() === 1}
+          disabled={currentPage() === 1 || loading()}
         >
           Previous
         </Button>
@@ -144,10 +161,11 @@ const Counter = () => {
           htmlSize={4}
           width="auto"
           placeholder={currentPage().toString()}
+          disabled={loading()}
         ></Input>
         <Button
           onClick={() => handlePageChange(currentPage() + 1)}
-          disabled={currentPage() === maxPage()}
+          disabled={currentPage() === maxPage() || loading()}
         >
           Next
         </Button>
