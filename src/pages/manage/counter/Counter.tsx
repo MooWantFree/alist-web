@@ -18,6 +18,8 @@ import { PageResp } from "~/types"
 import { handleResp, r } from "~/utils"
 import { createEffect, createSignal } from "solid-js"
 import { FaSolidAngleDown } from "solid-icons/fa"
+import "./counter.css"
+import { ChevronSort, ChevronSortDown, ChevronSortUp } from "./icons"
 
 interface CounterResp {
   id: number
@@ -34,6 +36,7 @@ const Counter = () => {
   const [sortKey, setSortKey] = createSignal("time")
   const [currentPage, setCurrentPage] = createSignal(1)
   const [pageSize, setPageSize] = createSignal(10)
+  const [maxPage, setMaxPage] = createSignal(1)
 
   const getCounters = async () => {
     const resp: PageResp<CounterResp> = await r.post("/admin/counter/get", {
@@ -42,7 +45,16 @@ const Counter = () => {
       sort_key: sortKey(),
       reverse: reverse(),
     })
-    handleResp(resp, (data) => setCounters(data.content))
+    handleResp(resp, (data) => {
+      const result = data.content.map((it) => {
+        return {
+          ...it,
+          time: new Date(it.time).toLocaleString(),
+        }
+      })
+      setMaxPage(resp.data.total)
+      setCounters(result)
+    })
   }
 
   createEffect(() => {
@@ -69,7 +81,7 @@ const Counter = () => {
 
   return (
     <>
-      <Table highlightOnHover dense>
+      <Table highlightOnHover dense striped="odd">
         <TableCaption>DownloadCounter</TableCaption>
         <Thead>
           <Tr>
@@ -105,14 +117,7 @@ const Counter = () => {
           </Tr>
         </Tfoot>
       </Table>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginTop: "1rem",
-        }}
-      >
+      <div class={"page-buttons"}>
         <Menu>
           <MenuTrigger
             as={Button}
@@ -140,7 +145,10 @@ const Counter = () => {
           width="auto"
           placeholder={currentPage().toString()}
         ></Input>
-        <Button onClick={() => handlePageChange(currentPage() + 1)}>
+        <Button
+          onClick={() => handlePageChange(currentPage() + 1)}
+          disabled={currentPage() === maxPage()}
+        >
           Next
         </Button>
       </div>
